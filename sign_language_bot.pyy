@@ -1,0 +1,35 @@
+import openai
+
+# Set your OpenAI API key 
+openai.api_key = 'sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx'
+# Replace with your actual API key
+
+#def generate_image(prompt):
+ #   response = openai.Image.create(
+  #      prompt=prompt,
+   #     n=1,
+    #    size="256x256"
+   # )
+    #image_url = response['data'][0]['url']
+   # return image_url
+
+def learn_sign_language():
+    print("Welcome to the Sign Language Learning Bot!")
+    print("Type 'exit' to quit.")
+
+    while True:
+        user_input = input("\nYou: ")
+        if user_input.lower() == 'exit':
+            break
+        # Provide basic responses
+        if user_input.lower() == 'learn alphabet':
+            image_url = generate_image("A hand showing the sign for 'A' in American Sign Language")
+            print(f"Here's an image to learn the sign for 'A': {image_url}")
+        elif user_input.lower() == 'quiz me':
+            print("What is the sign for 'hello'?")
+            # Add more interactive content here
+        else:
+            print("I can help you learn the alphabet or quiz you on signs!")
+
+if __name__ == "__main__":
+    learn_sign_language()
