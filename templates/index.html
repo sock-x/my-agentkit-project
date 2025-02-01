@@ -8,8 +8,8 @@
         /* General Styles */
         body {
             font-family: 'Arial', sans-serif;
-            background: linear-gradient(135deg, #ff9a9e, #fad0c4);
-            color: #333;
+            background: #000; /* Black background */
+            color: #FFD700; /* Gold text */
             margin: 0;
             padding: 0;
             display: flex;
@@ -19,10 +19,10 @@
         }
 
         .container {
-            background: rgba(255, 255, 255, 0.9);
+            background: #1E1E1E; /* Dark gray container */
             padding: 2rem;
             border-radius: 15px;
-            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 8px 16px rgba(255, 215, 0, 0.3); /* Gold shadow */
             max-width: 500px;
             width: 100%;
             text-align: center;
@@ -35,7 +35,7 @@
         }
 
         h1 {
-            color: #ff6f61;
+            color: #FFD700; /* Gold */
             font-size: 2.5rem;
             margin-bottom: 1.5rem;
             animation: bounce 2s infinite;
@@ -50,20 +50,22 @@
             width: 100%;
             padding: 0.75rem;
             margin-bottom: 1rem;
-            border: 2px solid #ddd;
+            border: 2px solid #FFD700; /* Gold border */
             border-radius: 5px;
             font-size: 1rem;
+            background: #333; /* Dark gray input */
+            color: #FFD700; /* Gold text */
             transition: border-color 0.3s ease;
         }
 
         input[type="text"]:focus {
-            border-color: #ff6f61;
+            border-color: #FF4500; /* Orange border on focus */
             outline: none;
         }
 
         button {
             padding: 0.75rem 1.5rem;
-            background-color: #ff6f61;
+            background-color: #FF4500; /* Orange button */
             color: white;
             border: none;
             border-radius: 5px;
@@ -73,15 +75,16 @@
         }
 
         button:hover {
-            background-color: #ff3b2f;
+            background-color: #FF8C00; /* Darker orange on hover */
             transform: scale(1.05);
         }
 
         .result {
             margin-top: 1.5rem;
             padding: 1rem;
-            background-color: #e8f5e9;
+            background: #333; /* Dark gray result box */
             border-radius: 5px;
+            color: #FFD700; /* Gold text */
             white-space: pre-wrap;
             text-align: left;
             animation: slideIn 0.5s ease-in-out;
@@ -93,11 +96,12 @@
         }
 
         .error {
-            color: #dc3545;
-            margin-top: 1rem;
-            padding: 0.75rem;
-            background-color: #ffebee;
+            margin-top: 1.5rem;
+            padding: 1rem;
+            background: #8B0000; /* Dark red error box */
             border-radius: 5px;
+            color: #FFD700; /* Gold text */
+            text-align: left;
             animation: shake 0.5s ease-in-out;
         }
 
@@ -112,25 +116,26 @@
             font-family: monospace;
             white-space: pre;
             margin-top: 10px;
+            color: #FFD700; /* Gold text */
             animation: bounce 1s infinite;
         }
 
         /* Quiz Button */
         .quiz-button {
             margin-top: 1rem;
-            background-color: #007BFF;
+            background-color: #4B0082; /* Indigo */
         }
 
         .quiz-button:hover {
-            background-color: #0056b3;
+            background-color: #800080; /* Purple */
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Sign Language Bot</h1>
-            
-        <!-- Command Input Form -->   
+
+        <!-- Command Input Form -->
         <form method="POST" action="/">
             <input
                 type="text"
@@ -140,35 +145,36 @@
             >
             <button type="submit">Submit</button>
         </form>
-         
+
         <!-- Quiz Button -->
         <button class="quiz-button" onclick="startQuiz()">Start Quiz</button>
-            
-        <!-- Display Messages -->
+
+        <!-- Display Results or Errors -->
         {% if error %}
-            <p class="error">{{ error }}</p>
-        {% elif result %}
-            <div class="result">
-                <pre>{{ result }}</pre>
-            </div>
+            <div class="error">{{ error | safe }}</div>
+        {% endif %}
+        {% if result %}
+            <div class="result">{{ result | safe }}</div>
         {% endif %}
     </div>
-    
+
     <script>
         async function startQuiz() {
             try {
+                // Fetch the quiz question from the backend
                 const response = await fetch('/quiz');
                 const data = await response.json();
-        
+
+                // Handle errors
                 if (data.error) {
                     alert(data.error);
                     return;
                 }
-                
-                // Ask the question
+
+                // Ask the user the quiz question
                 const userAnswer = prompt(`${data.question}\n\nHint: ${data.hint}`);
-            
-                // Check answer
+
+                // Check the user's answer
                 if (userAnswer && userAnswer.trim().toLowerCase() === data.answer.toLowerCase()) {
                     alert("Correct! 🎉");
                 } else {
