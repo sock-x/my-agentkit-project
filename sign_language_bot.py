@@ -1,150 +1,130 @@
+import sqlite3
 import random
 
-# Dictionary to store signs with descriptions and ASCII art
-signs = {
-    "alphabet": {
-        "A": {
-            "description": "Make a fist with your thumb on the side.",
-            "ascii": """
-  ____
- /    \\
-|      |
- \\____/
-"""
-        },
-        "B": {
-            "description": "Hold your hand flat with fingers together and thumb tucked in.",
-            "ascii": """
-  ____
- |    |
- |____|
-"""
-        },
-        "C": {
-            "description": "Curve your hand into a 'C' shape.",
-            "ascii": """
-   ____
-  /    \\
- |      |
-  \\____/
-"""
-        },
-    },
-    "numbers": {
-        "1": {
-            "description": "Hold up your index finger.",
-            "ascii": """
-  |
-  |
-  |
-"""
-        },
-        "2": {
-            "description": "Hold up your index and middle fingers.",
-            "ascii": """
-  /|
- / |
-/  |
-"""
-        },
-        "3": {
-            "description": "Hold up your index, middle, and ring fingers.",
-            "ascii": """
-  /|\\
- / | \\
-/  |  \\
-"""
-        },
-    },
-    "words": {
-        "hello": {
-            "description": "Wave your hand.",
-            "ascii": """
-  👋
- / \\
-/   \\
-"""
-        },
-        "thank you": {
-            "description": "Place your hand near your chin and move it forward.",
-            "ascii": """
-  🙏
- /   \\
-/     \\
-"""
-        },
-        "goodbye": {
-            "description": "Wave your hand like you're saying goodbye.",
-            "ascii": """
-  👋
- / \\
-/   \\
-"""
-        },
-    }
-}
+# Connect to the SQLite database
+conn = sqlite3.connect('sign_language.db')
+cursor = conn.cursor()
 
-def quiz_me():
-    quiz_questions = {
-        "What is the sign for 'hello'?": "wave hand",
-        "What is the sign for 'thank you'?": "place hand near chin and move forward",
-        "What is the sign for 'goodbye'?": "wave hand",
-    }
-    question = random.choice(list(quiz_questions.keys()))
-    print(question)
-    answer = input("Your answer: ")
-    if answer.lower() == quiz_questions[question]:
-        print("Correct! 🎉")
-    else:
-        print(f"Try again! The correct answer is: {quiz_questions[question]}")
+# Create the signs table if it doesn't exist
+cursor.execute('''
+    CREATE TABLE IF NOT EXISTS signs (
+        id INTEGER PRIMARY KEY,
+        name TEXT,
+        video TEXT,
+        description TEXT
+    )
+''')
+
+# Insert some sample data into the signs table
+sample_data = [
+    ('hello', 'https://www.youtube.com/watch?v=OcKefCuXyXI', 'Wave your hand with your palm facing outward'),
+    ('goodbye', 'https://example.com/goodbye-sign', 'Wave your hand with your palm facing inward'),
+    ('thank you', 'https://example.com/thank-you-sign', 'Make a flat "O" shape with your hand and move it away from your body'),
+    ('yes', 'https://example.com/yes-sign', 'Nod your head up and down'),
+    ('no', 'https://example.com/no-sign', 'Shake your head from side to side')
+]
+
+cursor.executemany("INSERT OR IGNORE INTO signs (name, video, description) VALUES (?, ?, ?)", sample_data)
+
+# Commit the changes
+conn.commit()
+
+def get_sign_data(sign_name):
+    cursor.execute("SELECT * FROM signs WHERE name = ?", (sign_name,))
+    result = cursor.fetchone()
+    return result
 
 def learn_sign_language():
     print("Welcome to the Sign Language Learning Bot!")
-    print("Type 'help' for a list of commands or 'exit' to quit.")
+    print("Type 'exit' to quit.")
+    print("\nAvailable commands:")
+    print("- learn alphabet")
+    print("- quiz me")
+    print("- what is the sign for [word]")
+    print("- practice signs")
+    print("- learn phrases")
 
     while True:
         user_input = input("\nYou: ")
         if user_input.lower() == 'exit':
             break
-        elif user_input.lower() == 'learn alphabet':
-            print("Here are the signs for the alphabet:")
-            for letter, data in signs["alphabet"].items():
-                print(f"{letter}: {data['description']}")
-                print(data['ascii'])  # Display ASCII art
-        elif user_input.lower() == 'learn numbers':
-            print("Here's how to sign numbers 1 to 3:")
-            for number, data in signs["numbers"].items():
-                print(f"{number}: {data['description']}")
-                print(data['ascii'])  # Display ASCII art
-        elif user_input.lower().startswith('learn'):
-            word = user_input.lower().replace("learn", "").strip()
-            if word in signs["words"]:
-                data = signs["words"][word]
-                print(f"The sign for '{word}' is: {data['description']}")
-                print(data['ascii'])  # Display ASCII art
-            else:
-                print(f"I don't know the sign for '{word}' yet. Can you teach me?")
+        # Provide basic responses
+        if user_input.lower() == 'learn alphabet':
+            print("Here's a video to learn the sign language alphabet: https://example.com/sign-language-alphabet")
         elif user_input.lower() == 'quiz me':
             quiz_me()
-        elif user_input.lower().startswith('teach'):
-            parts = user_input.lower().split(" ")
-            if len(parts) >= 3:
-                word = parts[1]
-                sign = " ".join(parts[2:])
-                signs["words"][word] = {"description": sign, "ascii": "No ASCII art yet."}
-                print(f"Thanks! I've learned that '{word}' is signed as '{sign}'.")
-            else:
-                print("Please use the format: 'teach [word] [sign description]'.")
-        elif user_input.lower() == 'help':
-            print("Here are the commands you can use:")
-            print("- 'learn alphabet': Learn how to sign the alphabet.")
-            print("- 'learn numbers': Learn how to sign numbers.")
-            print("- 'learn [word]': Learn how to sign a specific word (e.g., 'learn hello').")
-            print("- 'quiz me': Test your knowledge of sign language.")
-            print("- 'teach [word] [sign]': Teach the bot a new sign.")
-            print("- 'exit': Quit the bot.")
+        elif user_input.lower().startswith('what is the sign for'):
+            get_sign(user_input)
+        elif user_input.lower() == 'practice signs':
+            practice_signs()
+        elif user_input.lower() == 'learn phrases':
+            learn_phrases()
         else:
-            print("I can help you learn the alphabet, numbers, or quiz you on signs!")
+            print("I can help you learn the alphabet or quiz you on signs!")
+            print("Try one of the available commands listed above.")
+
+def quiz_me():
+    # Select a random sign from the database
+    cursor.execute("SELECT name, description FROM signs ORDER BY RANDOM() LIMIT 1")
+    result = cursor.fetchone()
+    sign, description = result
+    print(f"\nWhat is the sign for '{sign}'?")
+    print("(Type your description of the sign)")
+    answer = input("\nYou: ").lower()
+    
+    print(f"\nThe correct sign for '{sign}' is:")
+    print(description)
+    input("\nPress Enter to continue...")
+
+def get_sign(user_input):
+    # Extract the sign from the user's input
+    words = user_input.split()
+    sign_name = words[-1]
+    result = get_sign_data(sign_name)
+    
+    if result:
+        print(f"The sign for '{sign_name}' is: {result[3]}")
+        print(f"Video: {result[2]}")
+    else:
+        print(f"Sorry, I don't know the sign for '{sign_name}' yet.")
+
+def practice_signs():
+    print("\nLet's practice some signs!")
+    cursor.execute("SELECT name, description FROM signs ORDER BY RANDOM() LIMIT 3")
+    practice_signs = cursor.fetchall()
+    
+    for sign in practice_signs:
+        print(f"\nPractice the sign for '{sign[0]}':")
+        print(f"Description: {sign[1]}")
+        input("Press Enter when you're ready for the next sign...")
+    
+    print("\nGreat practice session!")
+
+def learn_phrases():
+    phrases = [
+        "Hello, how are you?",
+        "Nice to meet you",
+        "Have a good day",
+        "Thank you very much"
+    ]
+    
+    print("\nHere are some common phrases to learn:")
+    for phrase in phrases:
+        print(f"\nPhrase: {phrase}")
+        words = phrase.lower().split()
+        cursor.execute("SELECT name, description FROM signs WHERE name IN ('hello', 'thank', 'good', 'nice')")
+        related_signs = cursor.fetchall()
+        if related_signs:
+            print("Related signs you already know:")
+            for sign in related_signs:
+                print(f"- {sign[0]}: {sign[1]}")
+        input("\nPress Enter to continue...")
+    
+    print("\nYou've completed the phrases lesson!")
 
 if __name__ == "__main__":
-    learn_sign_language()
+    try:
+        learn_sign_language()
+    finally:
+        # Close the connection when finished
+        conn.close()
